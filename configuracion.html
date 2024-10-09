@@ -18,7 +18,26 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="crearConfiguracion()">Crear configuracion</button>
+                    <button type="button" class="btn btn-primary" onclick="openConfiguracionModal()">Crear elemento de configuración</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="configuracionModal" tabindex="-1" aria-labelledby="configuracionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="configuracionModalLabel">Crear Configuración de Alarma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-body-content">
+                    <!-- Contenido dinámico se inyectará aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarConfiguracion()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -27,8 +46,12 @@
     <script>
 
         $(document).ready(function () {
+            makeRequest();
+        });
+
+        function makeRequest(){
             $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/configuration",
+                url: "http://localhost:8000/configuration",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
@@ -40,7 +63,7 @@
                     console.error("Error al recuperar los datos del backend:", error);
                 }
             });
-        });
+        }
 
         function putItemsList(items) {
             content = ``;
@@ -66,43 +89,83 @@
         }
 
         function actualizarConfiguracion(id, name) {
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/configuration",
-                type: "PUT",
-                contentType: 'application/json',
-                data: JSON.stringify(
-                    {
-                        id: id,
-                        value: document.getElementById(`${name}Input`).value
-                    }
-                ),
-                success: function (data) {
-                    alert("Elemento de configuracion actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
-                }
+            const value = document.getElementById(`${name}Input`).value;
+
+            const params = new URLSearchParams({
+                id: id,
+                value: value
             });
+
+            fetch(`http://localhost:8000/configuration?${params}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud: ' + response.statusText);
+                    }
+                })
+                .then(data => {
+                    alert("Elemento de configuración actualizado.");
+                })
+                .catch(error => {
+                    console.error("Error al recuperar los datos del backend:", error);
+                });
         }
 
-        function crearConfiguracion() {
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/configuration",
-                type: "POST",
-                contentType: 'application/json',
-                data: JSON.stringify(
-                    {
-                        name: 'dummy',
-                        value: 'dummyValue',
-                        treatment_as: 'STRING'
-                    }
-                ),
-                success: function (data) {
-                    alert("Elemento de configuracion actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
+
+        function openConfiguracionModal() {
+            const content = `
+                <div class="row mb-3 text-secondary">
+                    <label class="col-sm-3 col-form-label">Tipo de medida</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="name" name="name" value="NAME">
+                    </div>
+                </div>
+                <div class="row mb-3 text-secondary">
+                    <label class="col-sm-3 col-form-label">Valor establecido para alarma</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="value" name="value" value="VALUE">
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-body-content').innerHTML = content;
+
+            const myModal = new bootstrap.Modal(document.getElementById('configuracionModal'));
+            myModal.show();
+        }
+
+        function guardarConfiguracion() {
+            const name = document.getElementById('name').value;
+            const value = document.getElementById('value').value;
+            
+            const params = new URLSearchParams({
+                name: name,
+                value: value,
+                treatment_as: 'STRING'
+            });
+
+            fetch(`http://localhost:8000/configuration?${params}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud: ' + response.statusText);
+                }
+            })
+            .then(data => {
+                alert("Configuración de alarma creada.");
+                makeRequest(); // Refresca la lista
+                const myModal = bootstrap.Modal.getInstance(document.getElementById('configuracionModal'));
+                myModal.hide(); // Cierra el modal
+            })
+            .catch(error => {
+                console.error("Error al recuperar los datos del backend:", error);
             });
         }
 

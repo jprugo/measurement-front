@@ -64,20 +64,31 @@ function agregarDatosAlGrafico(newDataPoints) {
 
 // BACKEND
 function cargarDatos(data) {
+    const filteredData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== null && value !== undefined)
+    );
 
-    backendRequest = $.ajax({
+    const params = new URLSearchParams(filteredData).toString();
+    const url = `http://localhost:8000/measurement?${params}`;
+
+    fetch(url, {
         method: "GET",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/measurement",
-        data: data,
-        contentType: "application/json",
-    });
-
-    var tableBody = '';
-
-    backendRequest.done(function (data) {
+        headers: {
+            "Content-Type": "application/json"
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        var tableBody = '';
         var datos = data.result;
-        for (i in datos) {
-            cuenta = eval(i) + 1;
+
+        for (let i in datos) {
+            let cuenta = parseInt(i) + 1;
 
             tableBody += '<tr>' +
                 '<th scope="row">' + cuenta + '</th>' +
@@ -91,24 +102,26 @@ function cargarDatos(data) {
         var dataTypes = {};
 
         datos.forEach(function (e) {
-            key = e.type ?? 'data'
+            let key = (e.detail === "" || e.detail === null) ? 'data' : e.detail;
             if (!dataTypes[key]) {
                 dataTypes[key] = { datapoints: [] };
             }
-            dataTypes[key].datapoints.push({ y: e.value, x: new Date(e.createdAt) });
+            dataTypes[key].datapoints.push({ y: e.value, x: new Date(e.created_at) });
         });
 
+        console.log(dataTypes);
         pintarGrafico(dataTypes, "Graphic");
-
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
     });
-
 }
 
 function loadDashboardData() {
 
     backendRequest = $.ajax({
         method: "GET",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/getDashboardInfo",
+        url: "http://localhost:8000/getDashboardInfo",
         contentType: "application/json",
     });
 
@@ -147,6 +160,8 @@ function handleSearch(measureType, detailName) {
 
     document.getElementById("selectedRange").innerHTML = fecha1 + " - " + fecha2;
 
+    detail = detailName === null ? null : document.getElementById(detailName).value;
+
     data = {
         measure_type: measureType,
         start_date: formatearFecha(new Date(fecha1Value)),
@@ -166,6 +181,7 @@ function formatearFecha(fecha) {
     var segundos = ('0' + fecha.getSeconds()).slice(-2);
 
     fecha_formateada = año + '-' + mes + '-' + dia + 'T' + hora + ':' + minutos + ':' + segundos;
+    console.log("Fecha formateada: "+ fecha_formateada);
     return fecha_formateada;
 }
 

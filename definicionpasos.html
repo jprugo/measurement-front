@@ -1,9 +1,20 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definición de Pasos</title>
+    <!-- Incluye Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
 
 <body>
     <div class="container-fluid">
         <div class="row mb-1 text-muted pt-4">
-            <h2>Duraci&oacute;n Mediciones</h2>
+            <h2>Duración Mediciones</h2>
         </div>
         <div class="row mb-3 text-secondary">
             <h5></h5>
@@ -24,32 +35,46 @@
                     <div class="col-12">
                         <div class="card border-light" style="border-radius: 15px;">
                             <div class="card-body ps-3" id="stepdefinition-list">
-
-
+                                <!-- Contenido dinámico aquí -->
                             </div>
                         </div>
                     </div>
+                    <button type="button" class="btn btn-primary" onclick="crearDefinicionPasos()">Crear definición de pasos</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="row mt-3">
-            <div class="col-lg-8 col-md-8 col-sm-12 offset-lg-2 offset-md-1 text-center">
-                <button type="button" class="btn btn-primary" onclick="crearDefinicionPasos()">Guardar</button>
+    <!-- Modal -->
+    <div class="modal fade" id="definicionModal" tabindex="-1" aria-labelledby="definicionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="definicionModalLabel">Crear Definición de Pasos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-body-content">
+                    <!-- Contenido dinámico se inyectará aquí -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarDefinicionPasos()">Guardar</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-
         $(document).ready(function () {
+            makeRequest();
+        });
+
+        function makeRequest() {
             $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
+                url: "http://localhost:8000/worker/stepDefinition",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
-                    console.log(data.result);
-                    console.log('id: ' + data.result[0]['id']);
                     result = data.result;
                     putItemsList(result);
                 },
@@ -57,57 +82,50 @@
                     console.error("Error al recuperar los datos del backend:", error);
                 }
             });
-        });
+        }
 
         function putItemsList(items) {
-            content = ``;
+            let content = '';
             items.forEach(item => {
                 content += `
-                        <input type="hidden" class="form-control" id="id" name="id" value="${item.id}" placeholder="0">
-
-                        <div class="row mb-3 text-secondary">
-                            <div class="col-sm-3">
-                                <select class="form-select" aria-label="Default position" name="${item.id}position" id="${item.id}position" value="${item.position}">
-                                    <option value="FIRST">PRIMERO</option>
-                                    <option value="SECOND">SEGUNDO</option>
-                                    <option value="THIRD">TERCERO</option>
-                                </select>
-                            </div>
-
-                            <span class="col-sm-3 col-form-label">Duración (min)</span>
-                            <div class="col-sm-2">
-                                <input type="number" class="form-control" id="${item.id}duration" name="${item.id}duration" value="${item.id}" placeholder="0">
-                            </div>
-
-                            <span class="col-sm-3 col-form-label">Periodo (seg)</span>
-                            <div class="col-sm-2">
-                                <input type="number" class="form-control" id="${item.id}period" name="${item.id}period" value="${item.period}" placeholder="0">
-                            </div>
+                    <input type="hidden" class="form-control" id="id" name="id" value="${item.id}" placeholder="0">
+                    <div class="row mb-3 text-secondary">
+                        <div class="col-sm-3">
+                            <select class="form-select" aria-label="Default position" name="${item.id}position" id="${item.id}position" value="${item.position}">
+                                <option value="FIRST" ${item.position === 'FIRST' ? 'selected' : ''}>PRIMERO</option>
+                                <option value="SECOND" ${item.position === 'SECOND' ? 'selected' : ''}>SEGUNDO</option>
+                                <option value="THIRD" ${item.position === 'THIRD' ? 'selected' : ''}>TERCERO</option>
+                            </select>
                         </div>
-
-                        <div class="row mb-3 text-secondary">
-                            <span class="col-sm-3 col-form-label">Espera (min)</span>
-                            <div class="col-sm-2">
-                                <input type="number" class="form-control" id="${item.id}lead" name="${item.id}lead" value="${item.lead}" placeholder="0">
-                            </div>
-
-                            <div class="col-sm-3">
-                                <select class="form-select" aria-label="Sensor type" id="${item.id}sensor_type" name="${item.id}sensor_type">
-                                    <option value="ISO">ISO</option>
-                                    <option value="RESISTENCIA">RES</option>
-                                    <option value="WELL">WELL</option>
-                                </select>
-                            </div>
+                        <span class="col-sm-3 col-form-label">Duración (min)</span>
+                        <div class="col-sm-2">
+                            <input type="number" class="form-control" id="${item.id}duration" name="${item.id}duration" value="${item.duration}" placeholder="0">
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-sm-3 offset-sm-3">
-                                <button class="btn btn-primary" onclick="actualizarDefinicionPasos(${item.id})">Guardar</button>
-                            </div>
+                        <span class="col-sm-3 col-form-label">Periodo (seg)</span>
+                        <div class="col-sm-2">
+                            <input type="number" class="form-control" id="${item.id}period" name="${item.id}period" value="${item.period}" placeholder="0">
                         </div>
-
-                        <hr>
-                    `
+                    </div>
+                    <div class="row mb-3 text-secondary">
+                        <span class="col-sm-3 col-form-label">Espera (min)</span>
+                        <div class="col-sm-2">
+                            <input type="number" class="form-control" id="${item.id}lead" name="${item.id}lead" value="${item.lead}" placeholder="0">
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-select" aria-label="Sensor type" id="${item.id}sensor_type" name="${item.id}sensor_type">
+                                <option value="ISO" ${item.sensor_type === 'ISO' ? 'selected' : ''}>SENSOR AISLAMIENTO</option>
+                                <option value="RES" ${item.sensor_type === 'RES' ? 'selected' : ''}>SENSOR RESISTENCIA</option>
+                                <option value="WELL" ${item.sensor_type === 'WELL' ? 'selected' : ''}>SENSOR POZO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3 offset-sm-3">
+                            <button class="btn btn-primary" onclick="actualizarDefinicionPasos(${item.id})">Guardar</button>
+                        </div>
+                    </div>
+                    <hr>
+                `;
             });
 
             document.getElementById('stepdefinition-list').innerHTML = content;
@@ -120,58 +138,121 @@
             const lead = document.getElementById(`${id}lead`).value;
             const sensorType = document.getElementById(`${id}sensor_type`).value;
 
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
-                type: "PUT",
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    id: id,
-                    position: position,
-                    duration: duration,
-                    period: period,
-                    lead: lead,
-                    sensor_type: sensorType
-                }),
-                success: function (data) {
-                    alert("Elemento de definicion de paso actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
-                }
+            const params = new URLSearchParams({
+                id: id,
+                position: position,
+                duration: duration,
+                period: period,
+                lead: lead,
+                sensor_type: sensorType
             });
+
+            fetch(`http://localhost:8000/worker/stepDefinition?${params}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud: ' + response.statusText);
+                    }
+                })
+                .then(data => {
+                    alert("Elemento de definición de paso actualizado.");
+                })
+                .catch(error => {
+                    console.error("Error al recuperar los datos del backend:", error);
+                });
         }
 
         function crearDefinicionPasos() {
+            const content = `
+                <input type="hidden" class="form-control" id="newId" name="newId" value="0">
+                <div class="row mb-3 text-secondary">
+                    <div class="col-sm-3">
+                        <select class="form-select" id="newPosition" name="newPosition">
+                            <option value="FIRST">PRIMERO</option>
+                            <option value="SECOND">SEGUNDO</option>
+                            <option value="THIRD">TERCERO</option>
+                        </select>
+                    </div>
+                    <span class="col-sm-3 col-form-label">Duración (min)</span>
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" id="newDuration" name="newDuration" value="1" placeholder="0">
+                    </div>
+                    <span class="col-sm-3 col-form-label">Periodo (seg)</span>
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" id="newPeriod" name="newPeriod" value="25" placeholder="0">
+                    </div>
+                </div>
+                <div class="row mb-3 text-secondary">
+                    <span class="col-sm-3 col-form-label">Espera (min)</span>
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" id="newLead" name="newLead" value="1" placeholder="0">
+                    </div>
+                    <div class="col-sm-3">
+                        <select class="form-select" id="newSensorType" name="newSensorType">
+                            <option value="WELL">SENSOR POZO</option>
+                            <option value="ISO">SENSOR AISLAMIENTO</option>
+                            <option value="RES">SENSOR RESISTENCIA</option>
+                        </select>
+                    </div>
+                </div>
+            `;
 
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
-                type: "POST",
-                contentType: 'application/json',
-                data: JSON.stringify(
-                    {
-                        position: 'FIRST',
-                        duration: 1,
-                        period: 25,
-                        lead: 1,
-                        sensor_type: 'WELL'
-                    }
-                ),
-                success: function (data) {
-                    alert("Elemento de definicion de paso actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
-                }
+            document.getElementById('modal-body-content').innerHTML = content;
+
+            // Muestra el modal
+            const myModal = new bootstrap.Modal(document.getElementById('definicionModal'));
+            myModal.show();
+        }
+
+        function guardarDefinicionPasos() {
+            const position = document.getElementById('newPosition').value;
+            const duration = document.getElementById('newDuration').value;
+            const period = document.getElementById('newPeriod').value;
+            const lead = document.getElementById('newLead').value;
+            const sensorType = document.getElementById('newSensorType').value;
+
+            const params = new URLSearchParams({
+                position: position,
+                duration: duration,
+                period: period,
+                lead: lead,
+                sensor_type: sensorType
             });
+
+            fetch(`http://localhost:8000/worker/stepDefinition?${params}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert("Elemento de definición de paso creado.");
+                    makeRequest(); // Para refrescar la lista
+                    const myModal = bootstrap.Modal.getInstance(document.getElementById('definicionModal'));
+                    myModal.hide(); // Cierra el modal
+                })
+                .catch(error => {
+                    console.error("Error al recuperar los datos del backend:", error);
+                });
         }
 
         function startMeasurementLoop() {
             $.ajax({
-                url: "http://localhost:8001/startMeasurementLoop",
+                url: "http://localhost:8000/worker/start",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
-                    alert('Accion completada');
+                    alert('Acción completada');
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al recuperar los datos del backend:", error);
@@ -181,18 +262,17 @@
 
         function stopMeasurementLoop() {
             $.ajax({
-                url: "http://localhost:8001/stopMeasurementLoop",
+                url: "http://localhost:8000/worker/stop",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
-                    alert('Accion completada');
+                    alert('Acción completada');
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al recuperar los datos del backend:", error);
                 }
             });
         }
-
     </script>
 </body>
 

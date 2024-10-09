@@ -11,7 +11,8 @@
                 data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-expanded="false"
                 aria-controls="menuPrincipal" style="margin-left: -3px; margin-top: 5px;"></button></div>
         <div class="col-10"><span class="fs-3 text-muted">Medici&oacute;n Aislamiento</span></div>
-        <div class="col-1 text-end"><i class="bi bi-battery-full"></i>&nbsp;<span class="fs-6 text-muted" style="padding-right: 10px;" id="battery">70%</span></div>
+        <div class="col-1 text-end"><i class="bi bi-battery-full"></i>&nbsp;<span class="fs-6 text-muted"
+                style="padding-right: 10px;" id="battery">70%</span></div>
     </div>
 
     <div class="row">
@@ -129,7 +130,7 @@
                         </div>
                         <div class="col-4">
                             <button class="btn btn-primary" onclick="reloadUsbData()"><span
-                                class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                                    class="glyphicon glyphicon-refresh"></span> Refresh</button>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -148,6 +149,7 @@
             $(document).ready(function () {
                 //loadDashboardData();
                 pintarGrafico([]);
+                fetchBatteryLevel();
             });
 
         </script>
