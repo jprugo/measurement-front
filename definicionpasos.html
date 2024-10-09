@@ -29,22 +29,19 @@
                             </div>
                         </div>
                     </div>
+                    <button type="button" class="btn btn-primary" onclick="crearDefinicionPasos()">Crear definicion de
+                        pasos</button>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-3">
-            <div class="col-lg-8 col-md-8 col-sm-12 offset-lg-2 offset-md-1 text-center">
-                <button type="button" class="btn btn-primary" onclick="crearDefinicionPasos()">Guardar</button>
-            </div>
-        </div>
     </div>
 
     <script>
 
         $(document).ready(function () {
             $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
+                url: "http://localhost:8000/worker/stepDefinition",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
@@ -68,9 +65,9 @@
                         <div class="row mb-3 text-secondary">
                             <div class="col-sm-3">
                                 <select class="form-select" aria-label="Default position" name="${item.id}position" id="${item.id}position" value="${item.position}">
-                                    <option value="FIRST">PRIMERO</option>
-                                    <option value="SECOND">SEGUNDO</option>
-                                    <option value="THIRD">TERCERO</option>
+                                    <option value="FIRST" ${item.position === 'FIRST' ? 'selected' : ''}>PRIMERO</option>
+                                    <option value="SECOND" ${item.position === 'SECOND' ? 'selected' : ''}>SEGUNDO</option>
+                                    <option value="FIRST" ${item.position === 'FIRST' ? 'selected' : ''}>TERCERO</option>
                                 </select>
                             </div>
 
@@ -93,9 +90,9 @@
 
                             <div class="col-sm-3">
                                 <select class="form-select" aria-label="Sensor type" id="${item.id}sensor_type" name="${item.id}sensor_type">
-                                    <option value="ISO">ISO</option>
-                                    <option value="RESISTENCIA">RES</option>
-                                    <option value="WELL">WELL</option>
+                                    <option value="ISO"  ${item.sensor_type === 'ISO' ? 'selected' : ''}>SENSOR AISLAMIENTO</option>
+                                    <option value="RES" ${item.sensor_type === 'RES' ? 'selected' : ''}>SENSOR RESISTENCIA</option>
+                                    <option value="WELL" ${item.sensor_type === 'WELL' ? 'selected' : ''}>SENSOR POZO</option>
                                 </select>
                             </div>
                         </div>
@@ -120,54 +117,67 @@
             const lead = document.getElementById(`${id}lead`).value;
             const sensorType = document.getElementById(`${id}sensor_type`).value;
 
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
-                type: "PUT",
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    id: id,
-                    position: position,
-                    duration: duration,
-                    period: period,
-                    lead: lead,
-                    sensor_type: sensorType
-                }),
-                success: function (data) {
-                    alert("Elemento de definicion de paso actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
-                }
+            const params = new URLSearchParams({
+                id: id,
+                position: position,
+                duration: duration,
+                period: period,
+                lead: lead,
+                sensor_type: sensorType
             });
+
+            fetch(`http://localhost:8000/worker/stepDefinition?${params}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud: ' + response.statusText);
+                    }
+                })
+                .then(data => {
+                    alert("Elemento de definición de paso actualizado.");
+                })
+                .catch(error => {
+                    console.error("Error al recuperar los datos del backend:", error);
+                });
         }
 
         function crearDefinicionPasos() {
 
-            $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/worker/stepDefinition",
-                type: "POST",
-                contentType: 'application/json',
-                data: JSON.stringify(
-                    {
-                        position: 'FIRST',
-                        duration: 1,
-                        period: 25,
-                        lead: 1,
-                        sensor_type: 'WELL'
-                    }
-                ),
-                success: function (data) {
-                    alert("Elemento de definicion de paso actualizado.");
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al recuperar los datos del backend:", error);
-                }
+            const params = new URLSearchParams({
+                position: 'FIRST',
+                duration: 1,
+                period: 25,
+                lead: 1,
+                sensor_type: 'WELL'
             });
+
+            fetch(`http://localhost:8000/worker/stepDefinition?${params}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la solicitud: ' + response.statusText);
+                    }
+                })
+                .then(data => {
+                    alert("Elemento de definición de paso actualizado.");
+                })
+                .catch(error => {
+                    console.error("Error al recuperar los datos del backend:", error);
+                });
+
         }
 
         function startMeasurementLoop() {
             $.ajax({
-                url: "http://localhost:8001/startMeasurementLoop",
+                url: "http://localhost:8000/worker/start",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
@@ -181,7 +191,7 @@
 
         function stopMeasurementLoop() {
             $.ajax({
-                url: "http://localhost:8001/stopMeasurementLoop",
+                url: "http://localhost:8000/worker/stop",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {

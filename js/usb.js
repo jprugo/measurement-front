@@ -2,7 +2,7 @@ function reloadUsbData() {
 
     backendRequest = $.ajax({
         method: "GET",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/drives",
+        url: "http://localhost:8000/drives",
         contentType: "application/json",
     });
 
@@ -39,7 +39,7 @@ function exportData(measureType, detailName) {
 
     backendRequest = $.ajax({
         method: "POST",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/measurement/export",
+        url: "http://localhost:8000/measurement/export",
         data: JSON.stringify({
             measure_type: measureType,
             start_date: fecha1,

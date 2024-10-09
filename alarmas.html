@@ -38,7 +38,7 @@
 
         $(document).ready(function () {
             $.ajax({
-                url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/alarm",
+                url: "http://localhost:8000/alarm",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
@@ -46,10 +46,10 @@
                     $.each(data, function (index, item) {
                         $("#tabla-body").append(`
                         <tr>
-                            <td>${item.sensorType}</td>
-                            <td>${item.alarmType}</td>
-                            <td>${item.value}</td>
-                            <td>${item.timestamp}</td>
+                            <td>${item.measure_type}</td>
+                            <td>${item.alarm_type}</td>
+                            <td>${item.measure_value}</td>
+                            <td>${item.created_at}</td>
                         </tr>
                         `);
                     });
