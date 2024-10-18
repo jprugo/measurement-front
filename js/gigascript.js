@@ -64,20 +64,27 @@ function agregarDatosAlGrafico(newDataPoints) {
 
 // BACKEND
 function cargarDatos(data) {
+    const params = new URLSearchParams(data).toString();
+    const url = `http://localhost:8000/measurement?${params}`;
 
-    backendRequest = $.ajax({
+    fetch(url, {
         method: "GET",
-        url: "http://localhost:8000/measurement",
-        data: data,
-        contentType: "application/json",
-    });
-
-    var tableBody = '';
-
-    backendRequest.done(function (data) {
+        headers: {
+            "Content-Type": "application/json"
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        var tableBody = '';
         var datos = data.result;
-        for (i in datos) {
-            cuenta = eval(i) + 1;
+
+        for (let i in datos) {
+            let cuenta = parseInt(i) + 1; // Cambié eval(i) por parseInt(i)
 
             tableBody += '<tr>' +
                 '<th scope="row">' + cuenta + '</th>' +
@@ -91,19 +98,21 @@ function cargarDatos(data) {
         var dataTypes = {};
 
         datos.forEach(function (e) {
-            key = (e.detail === "" || e.detail === null)  ? 'data' : e.detail
+            let key = (e.detail === "" || e.detail === null) ? 'data' : e.detail;
             if (!dataTypes[key]) {
                 dataTypes[key] = { datapoints: [] };
             }
             dataTypes[key].datapoints.push({ y: e.value, x: new Date(e.created_at) });
         });
-        
+
         console.log(dataTypes);
         pintarGrafico(dataTypes, "Graphic");
-
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
     });
-
 }
+
 
 function loadDashboardData() {
 
