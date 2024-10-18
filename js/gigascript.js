@@ -67,7 +67,7 @@ function cargarDatos(data) {
 
     backendRequest = $.ajax({
         method: "GET",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/measurement",
+        url: "http://localhost:8000/measurement",
         data: data,
         contentType: "application/json",
     });
@@ -91,13 +91,14 @@ function cargarDatos(data) {
         var dataTypes = {};
 
         datos.forEach(function (e) {
-            key = e.type ?? 'data'
+            key = (e.detail === "" || e.detail === null)  ? 'data' : e.detail
             if (!dataTypes[key]) {
                 dataTypes[key] = { datapoints: [] };
             }
-            dataTypes[key].datapoints.push({ y: e.value, x: new Date(e.createdAt) });
+            dataTypes[key].datapoints.push({ y: e.value, x: new Date(e.created_at) });
         });
-
+        
+        console.log(dataTypes);
         pintarGrafico(dataTypes, "Graphic");
 
     });
@@ -108,7 +109,7 @@ function loadDashboardData() {
 
     backendRequest = $.ajax({
         method: "GET",
-        url: "https://e10a34d8-df4e-472d-8424-c1cc68695f2d.mock.pstmn.io/getDashboardInfo",
+        url: "http://localhost:8000/getDashboardInfo",
         contentType: "application/json",
     });
 
@@ -147,6 +148,8 @@ function handleSearch(measureType, detailName) {
 
     document.getElementById("selectedRange").innerHTML = fecha1 + " - " + fecha2;
 
+    detail = detailName === null ? null : document.getElementById(detailName).value;
+
     data = {
         measure_type: measureType,
         start_date: formatearFecha(new Date(fecha1Value)),
@@ -166,6 +169,7 @@ function formatearFecha(fecha) {
     var segundos = ('0' + fecha.getSeconds()).slice(-2);
 
     fecha_formateada = año + '-' + mes + '-' + dia + 'T' + hora + ':' + minutos + ':' + segundos;
+    console.log("Fecha formateada: "+ fecha_formateada);
     return fecha_formateada;
 }
 
@@ -218,4 +222,35 @@ function manejarRelativeButton(interval, intervalType, measure_type, detailName)
     }
 
     cargarDatos(data)
+}
+
+async function fetchBatteryLevel() {
+    try {
+        const response = await fetch('http://localhost:8000/measurement/last', {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        const batteryMeasurement = data.result.find(measure => measure.measure_type === 'BATTERY');
+
+        if (batteryMeasurement) {
+            updateBatteryLevel(batteryMeasurement.value);
+        } else {
+            console.log('No battery measurement found');
+        }
+    } catch (error) {
+        console.error('Error fetching battery level:', error);
+    }
+}
+
+function updateBatteryLevel(level) {
+    const batteryElement = document.getElementById('battery');
+    batteryElement.textContent = level + '%';
 }
